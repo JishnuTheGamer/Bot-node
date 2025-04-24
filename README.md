@@ -1,3 +1,3 @@
 # Bot-node
 
-Created by kingop
+Created by darkop
