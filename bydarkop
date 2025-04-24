@@ -1,0 +1,87 @@
+#!/bin/bash
+
+# Cool ASCII banner for DarkOp
+echo -e "\e[1;36m"
+echo "╔════════════════════════════════════╗"
+echo "║                                    ║"
+echo "║        MADE WITH POWER BY          ║"
+echo "║            ★ D A R K O P ★         ║"
+echo "║                                    ║"
+echo "╚════════════════════════════════════╝"
+echo -e "\e[0m"
+sleep 1
+
+# Ensure the script is being run as root
+if [ "$(id -u)" -ne 0 ]; then
+    echo "This script must be run as root" 1>&2
+    exit 1
+fi
+
+# Update the system
+echo "Updating system..."
+apt update -y && apt upgrade -y
+
+# Install Docker if it's not already installed
+echo "Checking if Docker is installed..."
+if ! command -v docker &> /dev/null
+then
+    echo "Docker not found, installing..."
+    apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+    sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+    sudo apt update -y
+    sudo apt install -y docker-ce
+else
+    echo "Docker is already installed."
+fi
+
+# Install tmate if it's not already installed
+echo "Checking if tmate is installed..."
+if ! command -v tmate &> /dev/null
+then
+    echo "tmate not found, installing..."
+    sudo apt-get install -y tmate
+else
+    echo "tmate is already installed."
+fi
+
+# Ask for node information
+echo "Please enter your node information."
+
+read -p "Enter the node name: " NODE_NAME
+read -p "Enter the internal IP address of this node: " NODE_IP
+read -p "Enter the token provided by the bot for this node: " NODE_TOKEN
+
+# Save node information into a .env file
+echo "NODE_NAME=${NODE_NAME}" > .env
+echo "NODE_IP=${NODE_IP}" >> .env
+echo "NODE_TOKEN=${NODE_TOKEN}" >> .env
+
+# Pull the Docker image for the bot (replace with your actual image name)
+echo "Pulling the Docker image for your bot..."
+docker pull your-bot-image-name
+
+# Run the Docker container with tmate
+echo "Starting the bot container with tmate..."
+docker run -d \
+  --name "${NODE_NAME}" \
+  --hostname "${NODE_NAME}" \
+  --entrypoint tmate \
+  -e "TMATE_TOKEN=${NODE_TOKEN}" \
+  your-bot-image-name
+
+# Output success message
+echo "Node setup complete!"
+echo "Your node ${NODE_NAME} has been added. You can now manage it using the bot."
+
+echo "To monitor logs, run: docker logs -f ${NODE_NAME}"
+
+# Cool DarkOp banner at the end
+echo -e "\e[1;36m"
+echo "╔════════════════════════════════════╗"
+echo "║                                    ║"
+echo "║        NODE SETUP COMPLETE         ║"
+echo "║           ★ D A R K O P ★          ║"
+echo "║                                    ║"
+echo "╚════════════════════════════════════╝"
+echo -e "\e[0m"
